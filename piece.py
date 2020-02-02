@@ -65,6 +65,7 @@ class PieceFactory:
 			(7,6) : Knight("White"),
 			(7,7) : Rook("White")
 		}
+
 		return board_map.get((x,y),)
 class Board:
 	def __init__(self):
@@ -92,7 +93,7 @@ class Game:
 			return
 		if(not self.board.validate_move(x,y,x1,y1)):
 			print("invalid move")
-			return
+			pass
 		else:
 			self.board.perform_move(x,y,x1,y1)
 			self.turn = "White" if self.turn == "Black" else "Black"		
