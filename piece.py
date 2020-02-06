@@ -56,17 +56,24 @@ class King:
 class Pawn:
 	def __init__(self,color):
 		self.color = color
-	def isValidMove(self,x,y,x1,y1,turn_number):
+		self.first_move = True
+	def isValidMove(self,x,y,x1,y1):
 		x_move_distance = abs(x-x1)
 		y_move_distance = abs(y-y1)
 		total_move_distance = x_move_distance + y_move_distance
+		if (((x-x1) > 0) and self.color == "Black"): # check direction of pawn move
+			return False
+		if (((x-x1) < 0) and self.color == "White"): # check direction of pawn move
+			return False
 		if (x_move_distance == 2):
-			if (turn_number < 3 and y_move_distance == 0):
+			if (self.first_move and y_move_distance == 0):
+				self.first_move = False
 				return True
 			else: return False
 		elif (x_move_distance > 2 or x_move_distance < 1 or y_move_distance > 1):
 			return False
 		else: # xmd == 1, ymd == 1 or 0
+			self.first_move = False
 			return True
 	def as_string(self):
 		return self.color+"P"
@@ -118,7 +125,7 @@ class Board:
 
 	def validate_pawn(self,x,y,x1,y1):
 		active_piece = self.board_state[x][y]
-		if (not active_piece.isValidMove(x,y,x1,y1,self.turn_number)): 
+		if (not active_piece.isValidMove(x,y,x1,y1)): 
 			return False
 		y_move_distance = abs(y-y1) # implicitly know xmd == 0, ymd == 0 or 1
 		if (y_move_distance == 0):
@@ -134,25 +141,30 @@ class Board:
 
 	def validate_move(self,x,y,x1,y1):
 		active_piece = self.board_state[x][y]
-		x_move_distance = abs(x-x1)
-		y_move_distance = abs(y-y1)
+		x_move_distance, y_move_distance = abs(x-x1), abs(y-y1)
 		total_move_distance = x_move_distance + y_move_distance
 		if (isinstance(active_piece,Pawn)):
 			if(self.validate_pawn(x,y,x1,y1)):
-				self.board_state[x][y], self.board_state[x1][y1] = None, self.board_state[x][y]
 				return True
 			else: 
 				print("line 142 failed")
 				return False
 		elif (isinstance(active_piece,Rook)):
-			if(x_move_distance != 0 and y_move_distance != 0): return False
-			elif(total_move_distance > 8): return False
+			if(not active_piece.isValidMove(x,y,x1,y1)): 
+				return False
 			else: 
-				self.board_state[x][y], self.board_state[x1][y1] = None, self.board_state[x][y]
 				return True
+		elif (isinstance(active_piece,Bishop)):
+			if(not active_piece.isValidMove(x,y,x1,y1)): 
+				return False
+			else: 
+				return True
+
 		else:
 			return True
-	def perform_move(self):
+
+	def perform_move(self,x,y,x1,y1):
+		self.board_state[x][y], self.board_state[x1][y1] = None, self.board_state[x][y]
 		self.turn = "White" if self.turn == "Black" else "Black"
 		self.turn_number += 1
 		print(f"turn number:{self.turn_number}")
@@ -161,14 +173,6 @@ class Board:
 		r = [[x.as_string() if x else "empty" for x in self.board_state[i]] for i in range(8)]
 		for i in range(8):
 			print(r[i])
-			
-	def is_valid_move(self,x,y,x1,y1,target_piece):
-		pass
-
-
-
-
-
 
 class Move:
 	def __init__(self,x,y,x1,y1):
@@ -182,9 +186,13 @@ class Game:
 	def __init__(self):
 		self.board = Board()
 		self.move_history = []
+
 	def take_input(self):
 		cmd = input("Enter move: x,y,x1,y1:")
 		c = cmd.split(",")
+		if (len(c) != 4):
+			print("Invalid input")
+			return []
 		return [int(x) for x in c]
 
 	def game_loop(self):
@@ -193,11 +201,10 @@ class Game:
 			c = self.take_input()
 			self.move(c[0],c[1],c[2],c[3])
 
-
 	def move(self,x,y,x1,y1):
 		if(self.board.validate_move(x,y,x1,y1)):
 			print("performing move....")
-			self.board.perform_move()
+			self.board.perform_move(x,y,x1,y1)
 			self.move_history.append(Move(x,y,x1,y1))
 
 g = Game()
