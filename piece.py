@@ -15,7 +15,13 @@ class Knight:
 	def __init__(self,color):
 		self.color = color
 	def isValidMove(self,x,y,x1,y1):
-		return True
+		xmd = abs(x-x1)
+		ymd = abs(y-y1)
+		if (xmd == 2 and ymd == 1):
+			return True
+		if (xmd == 1 and ymd == 2):
+			return True
+		return False
 	def as_string(self):
 		return self.color+"k"
 
@@ -23,9 +29,11 @@ class Bishop:
 	def __init__(self,color):
 		self.color = color
 	def isValidMove(self,x,y,x1,y1):
-		if (abs(x-y) == abs(x1-y1)):
+		if (abs(x-x1) == abs(y-y1)):
+			print(f"x:{x}  y:{y}")
 			return True
 		else:
+			print(f"x:{x}  y:{y}")
 			return False
 	def as_string(self):
 		return self.color+"B"
@@ -49,7 +57,12 @@ class King:
 	def __init__(self,color):
 		self.color = color
 	def isValidMove(self):
-		return True
+		xmd = abs(x-x1)
+		ymd = abs(y-y1)
+		if (xmd != 1 or ymd != 1):
+			return False
+		else:
+			return True
 	def as_string(self):
 		return self.color+"K"
 
@@ -141,6 +154,7 @@ class Board:
 
 	def validate_move(self,x,y,x1,y1):
 		active_piece = self.board_state[x][y]
+		dest_piece = self.board_state[x1][y1]
 		x_move_distance, y_move_distance = abs(x-x1), abs(y-y1)
 		total_move_distance = x_move_distance + y_move_distance
 		if (isinstance(active_piece,Pawn)):
@@ -149,19 +163,17 @@ class Board:
 			else: 
 				print("line 142 failed")
 				return False
-		elif (isinstance(active_piece,Rook)):
-			if(not active_piece.isValidMove(x,y,x1,y1)): 
-				return False
-			else: 
-				return True
-		elif (isinstance(active_piece,Bishop)):
-			if(not active_piece.isValidMove(x,y,x1,y1)): 
-				return False
-			else: 
-				return True
 
-		else:
-			return True
+		if(not active_piece.isValidMove(x,y,x1,y1)): 
+			return False
+
+		if(dest_piece):
+			if(dest_piece.color == self.turn):
+				return False
+
+		# if (check path btw active and dest (call piece method)
+
+		return True
 
 	def perform_move(self,x,y,x1,y1):
 		self.board_state[x][y], self.board_state[x1][y1] = None, self.board_state[x][y]
@@ -181,6 +193,19 @@ class Move:
 		self.x1 = x1
 		self.y1 = y1
 
+class Error(Exception):
+	"""Base class for other exceptions"""
+	pass
+
+class InvalidInputError(Error):
+	"""Raised when the user provides invalid input"""
+	pass
+
+class InvalidMoveError(Error):
+	"""Raised when the selected move is invalid"""
+	pass	
+
+
 
 class Game:
 	def __init__(self):
@@ -191,15 +216,19 @@ class Game:
 		cmd = input("Enter move: x,y,x1,y1:")
 		c = cmd.split(",")
 		if (len(c) != 4):
-			print("Invalid input")
-			return []
+			raise InvalidInputError
 		return [int(x) for x in c]
 
 	def game_loop(self):
 		while(True):
-			g.board.print_board()
-			c = self.take_input()
-			self.move(c[0],c[1],c[2],c[3])
+			try:
+				g.board.print_board()
+				c = self.take_input()
+				self.move(c[0],c[1],c[2],c[3])
+			except InvalidInputError:
+				print("Invalid input! Move must be inputted in correct format")
+			except InvalidMoveError:
+				print("Move is invalid. Learn how to play chess.")
 
 	def move(self,x,y,x1,y1):
 		if(self.board.validate_move(x,y,x1,y1)):
