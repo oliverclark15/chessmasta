@@ -192,6 +192,9 @@ class Move:
 		self.y = y
 		self.x1 = x1
 		self.y1 = y1
+	def __str__(self):
+		return f'({self.x},{self.y}) -> ({self.x1},{self.y1})'
+
 
 class Error(Exception):
 	"""Base class for other exceptions"""
@@ -236,6 +239,8 @@ class Game:
 			self.board.perform_move(x,y,x1,y1)
 			self.move_history.append(Move(x,y,x1,y1))
 
-g = Game()
-g.game_loop()
+
+if (__name__ == "__main__"):
+	g = Game()
+	g.game_loop()
 
