@@ -2,10 +2,10 @@
 class Rook:
 	def __init__(self,color):
 		self.color = color
-	def isValidMove(self,x,y,x1,y1):
-		if (x == x1 and y != y1):
+	def isValidMove(self,move):
+		if (move.x == move.x1 and move.y != move.y1):
 			return True
-		elif (x != x1 and y == y1):
+		elif (move.x != move.x1 and move.y == move.y1):
 			return True
 		else:
 			return False
@@ -14,9 +14,9 @@ class Rook:
 class Knight:
 	def __init__(self,color):
 		self.color = color
-	def isValidMove(self,x,y,x1,y1):
-		xmd = abs(x-x1)
-		ymd = abs(y-y1)
+	def isValidMove(self,move):
+		xmd = abs(move.x-move.x1)
+		ymd = abs(move.y-move.y1)
 		if (xmd == 2 and ymd == 1):
 			return True
 		if (xmd == 1 and ymd == 2):
@@ -28,12 +28,10 @@ class Knight:
 class Bishop:
 	def __init__(self,color):
 		self.color = color
-	def isValidMove(self,x,y,x1,y1):
-		if (abs(x-x1) == abs(y-y1)):
-			print(f"x:{x}  y:{y}")
+	def isValidMove(self,move):
+		if (abs(move.x-move.x1) == abs(move.y-move.y1)):
 			return True
 		else:
-			print(f"x:{x}  y:{y}")
 			return False
 	def as_string(self):
 		return self.color+"B"
@@ -41,14 +39,15 @@ class Bishop:
 class Queen:
 	def __init__(self,color):
 		self.color = color
-	def isValidMove(self):
-		if (x == x1 and y != y1):
+	def isValidMove(self,move):
+		if (move.x == move.x1 and move.y != move.y1):
 			return True
-		elif (x != x1 and y == y1):
+		elif (move.x != move.x1 and move.y == move.y1):
 			return True
-		elif (abs(x-y) == abs(x1-y1)):
+		elif (abs(move.x-move.x1) == abs(move.y-move.y1)):
 			return True
 		else:
+			print("hi")
 			return False
 	def as_string(self):
 		return self.color+"Q"
@@ -56,9 +55,9 @@ class Queen:
 class King:
 	def __init__(self,color):
 		self.color = color
-	def isValidMove(self):
-		xmd = abs(x-x1)
-		ymd = abs(y-y1)
+	def isValidMove(self,move):
+		xmd = abs(move.x-move.x1)
+		ymd = abs(move.y-move.y1)
 		if (xmd != 1 or ymd != 1):
 			return False
 		else:
@@ -70,20 +69,24 @@ class Pawn:
 	def __init__(self,color):
 		self.color = color
 		self.first_move = True
-	def isValidMove(self,x,y,x1,y1):
-		x_move_distance = abs(x-x1)
-		y_move_distance = abs(y-y1)
+	def isValidMove(self,move):
+
+		x_move_distance = abs(move.x-move.x1)
+		y_move_distance = abs(move.y-move.y1)
 		total_move_distance = x_move_distance + y_move_distance
-		if (((x-x1) > 0) and self.color == "Black"): # check direction of pawn move
+		if (((move.x-move.x1) > 0) and self.color == "Black"): # check direction of pawn move
 			return False
-		if (((x-x1) < 0) and self.color == "White"): # check direction of pawn move
+		if (((move.x-move.x1) < 0) and self.color == "White"): # check direction of pawn move
 			return False
+
+
 		if (x_move_distance == 2):
 			if (self.first_move and y_move_distance == 0):
 				self.first_move = False
 				return True
 			else: return False
 		elif (x_move_distance > 2 or x_move_distance < 1 or y_move_distance > 1):
+			
 			return False
 		else: # xmd == 1, ymd == 1 or 0
 			self.first_move = False
@@ -136,47 +139,53 @@ class Board:
 		self.board_state = [[pf.new_piece(x,y) for y in range(8)] for x in range(8)]
 		self.turn_number = 1
 
-	def validate_pawn(self,x,y,x1,y1):
-		active_piece = self.board_state[x][y]
-		if (not active_piece.isValidMove(x,y,x1,y1)): 
+	def validate_pawn(self,move):
+		active_piece = self.board_state[move.x][move.y]
+		if (not active_piece.isValidMove(move)): 
+			print("140")
 			return False
-		y_move_distance = abs(y-y1) # implicitly know xmd == 0, ymd == 0 or 1
+		y_move_distance = abs(move.y-move.y1) # implicitly know xmd == 0, ymd == 0 or 1
 		if (y_move_distance == 0):
-			if(not self.board_state[x1][y1]):
+			if(not self.board_state[move.x1][move.y1]):
 				return True
-			else: return False
+			else:
+				print("146")
+				return False
 		elif (y_move_distance == 1):
-			if(self.board_state[x1][y1].color == self.turn):
+			if(self.board_state[move.x1][move.y1].color == self.turn):
 				return True
-			else: return False
+			else:
+				print("150")
+				return True
 		else:
 			print("shouldnt happen")
 
-	def validate_move(self,x,y,x1,y1):
-		active_piece = self.board_state[x][y]
-		dest_piece = self.board_state[x1][y1]
-		x_move_distance, y_move_distance = abs(x-x1), abs(y-y1)
+	def validate_move(self,move):
+		active_piece = self.board_state[move.x][move.y]
+		dest_piece = self.board_state[move.x1][move.y1]
+		x_move_distance, y_move_distance = abs(move.x-move.x1), abs(move.y-move.y1)
 		total_move_distance = x_move_distance + y_move_distance
 		if (isinstance(active_piece,Pawn)):
-			if(self.validate_pawn(x,y,x1,y1)):
+			if(self.validate_pawn(move)):
 				return True
-			else: 
-				print("line 142 failed")
-				return False
+			else:
+				raise InvalidMoveError 
+		if(not active_piece):
+			raise NoPieceHereError
 
-		if(not active_piece.isValidMove(x,y,x1,y1)): 
-			return False
+		if(not active_piece.isValidMove(move)): 
+			raise InvalidMoveError 
 
-		if(dest_piece):
-			if(dest_piece.color == self.turn):
-				return False
+		#if(dest_piece):
+			#if(dest_piece.color == self.turn):
+				#raise InvalidMoveError 
 
 		# if (check path btw active and dest (call piece method)
 
 		return True
 
-	def perform_move(self,x,y,x1,y1):
-		self.board_state[x][y], self.board_state[x1][y1] = None, self.board_state[x][y]
+	def perform_move(self,move):
+		self.board_state[move.x][move.y], self.board_state[move.x1][move.y1] = None, self.board_state[move.x][move.y]
 		self.turn = "White" if self.turn == "Black" else "Black"
 		self.turn_number += 1
 		print(f"turn number:{self.turn_number}")
@@ -206,6 +215,10 @@ class InvalidInputError(Error):
 
 class InvalidMoveError(Error):
 	"""Raised when the selected move is invalid"""
+	pass
+
+class NoPieceHereError(Error):
+	"""Raised when no piece exists at initial coord"""
 	pass	
 
 
@@ -227,18 +240,26 @@ class Game:
 			try:
 				g.board.print_board()
 				c = self.take_input()
-				self.move(c[0],c[1],c[2],c[3])
+				m = Move(c[0],c[1],c[2],c[3])
+				self.move(m)
+				#self.move(c[0],c[1],c[2],c[3])
 			except InvalidInputError:
 				print("Invalid input! Move must be inputted in correct format")
 			except InvalidMoveError:
 				print("Move is invalid. Learn how to play chess.")
 
-	def move(self,x,y,x1,y1):
-		if(self.board.validate_move(x,y,x1,y1)):
-			print("performing move....")
-			self.board.perform_move(x,y,x1,y1)
-			self.move_history.append(Move(x,y,x1,y1))
-
+	def move(self,move):
+		try:
+			if(self.board.validate_move(move)):
+				print("performing move....")
+				self.board.perform_move(move)
+				self.move_history.append(move)
+		except InvalidMoveError:
+			print(move)
+			print("Move is invalid. Learn how to play chess.")
+		except NoPieceHereError:
+			print(move)
+			print(f"No piece located at {move.x},{move.y}")
 
 if (__name__ == "__main__"):
 	g = Game()

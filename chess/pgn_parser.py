@@ -12,7 +12,17 @@ def parse():
 		'g':6,
 		'h':7,
 	}
-	with open("carlsen_games.txt") as f:
+	int_dict = {
+		'8':0,
+		'7':1,
+		'6':2,
+		'5':3,
+		'4':4,
+		'3':5,
+		'2':6,
+		'1':7
+	}
+	with open("berliner.txt") as f:
 	    content = f.readlines()
 
 	long_string = "".join(content).replace("\n"," ")
@@ -22,8 +32,7 @@ def parse():
 	for ls in long_string:
 	    z = re_prog.findall(ls)
 	    output.append(z)
-
-	new_games = [[Move(char_dict[move[0]],int(move[1])-1,char_dict[move[3]],int(move[4])-1) for move in game] for game in output]
+	new_games = [[Move(int_dict[move[1]],char_dict[move[0]],int_dict[move[4]],char_dict[move[3]]) for move in game] for game in output]
 	return new_games
 
 
