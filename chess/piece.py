@@ -2,6 +2,7 @@
 class Rook:
 	def __init__(self,color):
 		self.color = color
+		self.has_moved = False
 	def isValidMove(self,move):
 		if (move.x == move.x1 and move.y != move.y1):
 			return True
@@ -55,12 +56,26 @@ class Queen:
 class King:
 	def __init__(self,color):
 		self.color = color
+		self.has_moved = False
 	def isValidMove(self,move):
 		xmd = abs(move.x-move.x1)
 		ymd = abs(move.y-move.y1)
-		if (xmd != 1 or ymd != 1):
+		"""
+		print('\n')
+		print('\n')
+		print(xmd)
+		print('\n')
+		print('\n')
+		print(ymd)
+		print('\n')
+		print('\n')
+		"""
+		if (ymd == 2 and xmd == 0):
+			return True
+		elif (xmd > 1 or ymd > 1):
 			return False
 		else:
+			print("hi")
 			return True
 	def as_string(self):
 		return self.color+"K"
@@ -139,6 +154,19 @@ class Board:
 		self.board_state = [[pf.new_piece(x,y) for y in range(8)] for x in range(8)]
 		self.turn_number = 1
 
+
+	def get_move_type(self,move):
+		active_piece = self.board_state[move.x][move.y]
+		x_move_distance, y_move_distance = abs(move.x-move.x1), abs(move.y-move.y1)
+		if(isinstance(active_piece, King) and y_move_distance == 2 and x_move_distance == 0):
+			return "Castling"
+		elif(False):
+			return "Promotion"
+		elif(False):
+			return "En-passant"
+		else:
+			return "Normal"
+
 	def validate_pawn(self,move):
 		active_piece = self.board_state[move.x][move.y]
 		if (not active_piece.isValidMove(move)): 
@@ -160,9 +188,32 @@ class Board:
 		else:
 			print("shouldnt happen")
 
+	def validate_castling(self,move):
+		active_piece = self.board_state[move.x][move.y]
+		dest_piece = self.board_state[move.x1][move.y1]
+		castle_y = 7 if move.y1 == 6 else 0
+		castle_piece = self.board_state[move.x1][castle_y]
+		
+		if(not castle_piece):
+			return False
+		if(not isinstance(castle_piece,Rook)):
+			return False
+		if (active_piece.has_moved or castle_piece.has_moved):
+			return False
+
+		return True
+		# check if pieces between
+		# check if king is in check
+		# pass through square attacked
+		# king does not end up in check
+
+	
+
 	def validate_move(self,move):
 		active_piece = self.board_state[move.x][move.y]
 		dest_piece = self.board_state[move.x1][move.y1]
+
+
 		x_move_distance, y_move_distance = abs(move.x-move.x1), abs(move.y-move.y1)
 		total_move_distance = x_move_distance + y_move_distance
 		if (isinstance(active_piece,Pawn)):
@@ -170,6 +221,12 @@ class Board:
 				return True
 			else:
 				raise InvalidMoveError 
+		if (isinstance(active_piece, King) and y_move_distance == 2):
+			if(self.validate_castling(move)):
+				return True
+			else:
+				raise InvalidMoveError 
+
 		if(not active_piece):
 			raise NoPieceHereError
 
@@ -190,6 +247,20 @@ class Board:
 		self.turn_number += 1
 		print(f"turn number:{self.turn_number}")
 		return
+
+
+	def perform_castling(self,move):
+		castle_x = move.x
+		castle_y = 7 if move.y1 == 6 else 0
+		castle_final_y = 5 if castle_y > 4 else 3
+		castle_piece = self.board_state[move.x1][castle_y]
+		self.board_state[move.x][move.y], self.board_state[move.x1][move.y1] = None, self.board_state[move.x][move.y]
+		self.board_state[castle_x][castle_y], self.board_state[castle_x][castle_final_y] = None, self.board_state[castle_x][castle_y]
+		self.turn = "White" if self.turn == "Black" else "Black"
+		self.turn_number += 1
+		print(f"turn number:{self.turn_number}")
+		return
+
 	def print_board(self):
 		r = [[x.as_string() if x else "empty" for x in self.board_state[i]] for i in range(8)]
 		for i in range(8):
@@ -201,6 +272,7 @@ class Move:
 		self.y = y
 		self.x1 = x1
 		self.y1 = y1
+		self.type = None
 	def __str__(self):
 		return f'({self.x},{self.y}) -> ({self.x1},{self.y1})'
 
@@ -220,8 +292,6 @@ class InvalidMoveError(Error):
 class NoPieceHereError(Error):
 	"""Raised when no piece exists at initial coord"""
 	pass	
-
-
 
 class Game:
 	def __init__(self):
@@ -250,9 +320,18 @@ class Game:
 
 	def move(self,move):
 		try:
+			move.type = self.board.get_move_type(move)
 			if(self.board.validate_move(move)):
 				print("performing move....")
-				self.board.perform_move(move)
+				if (move.type == "Castling"):
+					print("\n\n\n\n WE CASTLING BOY \n\n\n")
+					self.board.perform_castling(move)
+				elif(move.type == "Promotion"):
+					pass
+				elif(move.type == "En-passant"):
+					pass
+				else:
+					self.board.perform_move(move)
 				self.move_history.append(move)
 		except InvalidMoveError:
 			print(move)
