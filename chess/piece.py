@@ -3,6 +3,10 @@ class Rook:
 	def __init__(self,color):
 		self.color = color
 		self.has_moved = False
+
+	def is_blocked(self,move):
+		return False
+
 	def isValidMove(self,move):
 		if (move.x == move.x1 and move.y != move.y1):
 			return True
@@ -15,6 +19,8 @@ class Rook:
 class Knight:
 	def __init__(self,color):
 		self.color = color
+	def is_blocked(self,move):
+		return False
 	def isValidMove(self,move):
 		xmd = abs(move.x-move.x1)
 		ymd = abs(move.y-move.y1)
@@ -29,6 +35,8 @@ class Knight:
 class Bishop:
 	def __init__(self,color):
 		self.color = color
+	def is_blocked(self,move):
+		return False
 	def isValidMove(self,move):
 		if (abs(move.x-move.x1) == abs(move.y-move.y1)):
 			return True
@@ -40,6 +48,8 @@ class Bishop:
 class Queen:
 	def __init__(self,color):
 		self.color = color
+	def is_blocked(self,move):
+		return False
 	def isValidMove(self,move):
 		if (move.x == move.x1 and move.y != move.y1):
 			return True
@@ -57,19 +67,11 @@ class King:
 	def __init__(self,color):
 		self.color = color
 		self.has_moved = False
+	def is_blocked(self,move):
+		return False
 	def isValidMove(self,move):
 		xmd = abs(move.x-move.x1)
 		ymd = abs(move.y-move.y1)
-		"""
-		print('\n')
-		print('\n')
-		print(xmd)
-		print('\n')
-		print('\n')
-		print(ymd)
-		print('\n')
-		print('\n')
-		"""
 		if (ymd == 2 and xmd == 0):
 			return True
 		elif (xmd > 1 or ymd > 1):
@@ -84,6 +86,8 @@ class Pawn:
 	def __init__(self,color):
 		self.color = color
 		self.first_move = True
+	def is_blocked(self,move):
+		return False
 	def isValidMove(self,move):
 
 		x_move_distance = abs(move.x-move.x1)
@@ -154,6 +158,30 @@ class Board:
 		self.board_state = [[pf.new_piece(x,y) for y in range(8)] for x in range(8)]
 		self.turn_number = 1
 
+	def find_king(self,kcolor):
+		for x in range(8):
+			for y in range(8):
+				bs = self.board_state[x][y]
+				if(not bs):
+					continue
+				if(isinstance(bs,King) and bs.color == kcolor):
+					return (x,y)
+
+	def is_in_check(self,kcolor):
+		kloc = self.find_king(kcolor)
+		for x in range(8):
+			for y in range(8):
+				bs = self.board_state[x][y]
+				if(not bs):
+					continue
+				if(bs.color == kcolor):
+					continue
+				attack_move = Move(x,y,kloc[0],kloc[1])
+				if(bs.isValidMove(attack_move)):
+					if(bs.is_blocked(attack_move)):
+						continue
+					return True
+		return False
 
 	def get_move_type(self,move):
 		active_piece = self.board_state[move.x][move.y]
