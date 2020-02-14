@@ -4,8 +4,8 @@ class Rook:
 		self.color = color
 		self.has_moved = False
 
-	def is_blocked(self,move):
-		return False
+	def get_inbetween(self,move):
+		return []
 
 	def isValidMove(self,move):
 		if (move.x == move.x1 and move.y != move.y1):
@@ -19,8 +19,8 @@ class Rook:
 class Knight:
 	def __init__(self,color):
 		self.color = color
-	def is_blocked(self,move):
-		return False
+	def get_inbetween(self,move):
+		return []
 	def isValidMove(self,move):
 		xmd = abs(move.x-move.x1)
 		ymd = abs(move.y-move.y1)
@@ -35,8 +35,8 @@ class Knight:
 class Bishop:
 	def __init__(self,color):
 		self.color = color
-	def is_blocked(self,move):
-		return False
+	def get_inbetween(self,move):
+		return []
 	def isValidMove(self,move):
 		if (abs(move.x-move.x1) == abs(move.y-move.y1)):
 			return True
@@ -48,8 +48,8 @@ class Bishop:
 class Queen:
 	def __init__(self,color):
 		self.color = color
-	def is_blocked(self,move):
-		return False
+	def get_inbetween(self,move):
+		return []
 	def isValidMove(self,move):
 		if (move.x == move.x1 and move.y != move.y1):
 			return True
@@ -58,7 +58,6 @@ class Queen:
 		elif (abs(move.x-move.x1) == abs(move.y-move.y1)):
 			return True
 		else:
-			print("hi")
 			return False
 	def as_string(self):
 		return self.color+"Q"
@@ -67,8 +66,8 @@ class King:
 	def __init__(self,color):
 		self.color = color
 		self.has_moved = False
-	def is_blocked(self,move):
-		return False
+	def get_inbetween(self,move):
+		return []
 	def isValidMove(self,move):
 		xmd = abs(move.x-move.x1)
 		ymd = abs(move.y-move.y1)
@@ -77,7 +76,6 @@ class King:
 		elif (xmd > 1 or ymd > 1):
 			return False
 		else:
-			print("hi")
 			return True
 	def as_string(self):
 		return self.color+"K"
@@ -86,8 +84,8 @@ class Pawn:
 	def __init__(self,color):
 		self.color = color
 		self.first_move = True
-	def is_blocked(self,move):
-		return False
+	def get_inbetween(self,move):
+		return []
 	def isValidMove(self,move):
 
 		x_move_distance = abs(move.x-move.x1)
@@ -178,10 +176,26 @@ class Board:
 					continue
 				attack_move = Move(x,y,kloc[0],kloc[1])
 				if(bs.isValidMove(attack_move)):
-					if(bs.is_blocked(attack_move)):
-						continue
+					for p in self.get_path(attack_move):
+						if (p):
+							continue
 					return True
 		return False
+
+	def get_path(self, move):
+		x_curr = move.x
+		y_curr = move.y
+		x_end = move.x1
+		y_end = move.y1
+		results = []
+		while (x_curr != x_end or y_curr != y_end):
+			if (not y_curr == y_end):
+				y_curr = y_curr + 1 if (y_curr < y_end) else y_curr - 1
+			if (not x_curr == x_end):
+				x_curr = x_curr + 1 if (x_curr < x_end) else x_curr - 1
+			results.append((x_curr,y_curr))
+		return results[:-1]
+
 
 	def get_move_type(self,move):
 		active_piece = self.board_state[move.x][move.y]
@@ -340,6 +354,17 @@ class Game:
 				c = self.take_input()
 				m = Move(c[0],c[1],c[2],c[3])
 				self.move(m)
+				if (self.board.is_in_check("White")):
+					if (self.board.is_in_checkmate("White")):
+						print("White is in checkmate, Black wins!")
+					else:
+						print("White is in check")
+				if (self.board.is_in_check("Black")):
+					if (self.board.is_in_checkmate("Black")):
+						print("Black is in checkmate, white wins!")
+					else:
+						print("Black is in check")
+				#print(f"White: {self.board.board_state.is_in_check("White")}   Black: {self.board.board_state.is_in_check("Black")}")
 				#self.move(c[0],c[1],c[2],c[3])
 			except InvalidInputError:
 				print("Invalid input! Move must be inputted in correct format")
@@ -368,7 +393,15 @@ class Game:
 			print(move)
 			print(f"No piece located at {move.x},{move.y}")
 
+
+
 if (__name__ == "__main__"):
+	mm = Move(0,0,7,0)
+	mm1 = Move(0,0,0,7)
+	mm2 = Move(0,0,7,7)
+	mm3 = Move(5,5,0,0)
+	mm4 = Move(2,3,4,5)
+
 	g = Game()
 	g.game_loop()
 
