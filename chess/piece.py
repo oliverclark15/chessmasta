@@ -164,6 +164,7 @@ class Board:
 		yl = []
 		xl.append(kx)
 		yl.append(ky)
+		print(kloc)
 		if (kx < 7):
 			xl.append(kx+1)
 		if (kx > 0):
@@ -172,7 +173,8 @@ class Board:
 			yl.append(ky+1)
 		if (ky > 0):
 			yl.append(ky-1)
-		return list(itertools.product(xl,yl)).remove((kx,ky))
+		print(list(itertools.product(xl,yl)))
+		return list(itertools.product(xl,yl))
 
 	def find_king(self,kcolor):
 		for x in range(8):
@@ -200,15 +202,31 @@ class Board:
 					return True
 		return False
 
+	def try_escape(self,move,kcolor):
+		saved_board = self.board_state
+		tmp = self.board_state[move.x1][move.y1]
+		if(not tmp or tmp.color != kcolor):
+			self.board_state[move.x][move.y], self.board_state[move.x1][move.y1] = None, self.board_state[move.x][move.y]
+			in_check = self.is_in_check(kcolor)
+			self.board_state[move.x][move.y], self.board_state[move.x1][move.y1] = self.board_state[move.x1][move.y1], tmp
+			return (not in_check)
+		else:
+			return False
+
+	
 	def is_in_checkmate(self,kcolor):
 		kloc = self.find_king(kcolor)
 		kdestinations = self.get_king_moves(kcolor)
+		print(kloc)
+		print(kdestinations)
 		kmoves = [Move(kloc[0],kloc[1],kdest[0],kdest[1]) for kdest in kdestinations]
 		for km in kmoves:
+			print(f"Trying {km}")
+			if(self.try_escape(km,kcolor)):
+				print("escape found")
+				return False
+		return True
 			
-
-
-
 	def get_path(self, move):
 		x_curr = move.x
 		y_curr = move.y
