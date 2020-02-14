@@ -1,12 +1,14 @@
 import itertools
-from piece import Rook, Knight, Bishop, King, Queen, Pawn, PieceFactory
-
+if (__name__ == "__main__"):
+    from piece import Rook, Knight, Bishop, King, Queen, Pawn, PieceFactory
+else:
+    from .piece import Rook, Knight, Bishop, King, Queen, Pawn, PieceFactory
 
 class Board:
     def __init__(self):
         pf = PieceFactory()
         self.turn = "White"
-        self.board_state = [[pf.new_piece(x,y) for y in range(8)] for x in range(8)]
+        self.board_state = [[pf.new_piece(x, y) for y in range(8)] for x in range(8)]
         self.turn_number = 1
 
     def get_king_moves(self,kcolor):
@@ -26,8 +28,8 @@ class Board:
             yl.append(ky+1)
         if (ky > 0):
             yl.append(ky-1)
-        print(list(itertools.product(xl,yl)))
-        return list(itertools.product(xl,yl))
+        print(list(itertools.product(xl, yl)))
+        return list(itertools.product(xl, yl))
 
     def find_king(self,kcolor):
         for x in range(8):
@@ -47,7 +49,7 @@ class Board:
                     continue
                 if(bs.color == kcolor):
                     continue
-                attack_move = Move(x,y,kloc[0],kloc[1])
+                attack_move = Move(x, y, kloc[0], kloc[1])
                 if(bs.isValidMove(attack_move)):
                     for p in self.get_path(attack_move):
                         if (p):
@@ -56,7 +58,6 @@ class Board:
         return False
 
     def try_escape(self,move,kcolor):
-        saved_board = self.board_state
         tmp = self.board_state[move.x1][move.y1]
         if(not tmp or tmp.color != kcolor):
             self.board_state[move.x][move.y], self.board_state[move.x1][move.y1] = None, self.board_state[move.x][move.y]
@@ -66,20 +67,19 @@ class Board:
         else:
             return False
 
-    
-    def is_in_checkmate(self,kcolor):
+    def is_in_checkmate(self, kcolor):
         kloc = self.find_king(kcolor)
         kdestinations = self.get_king_moves(kcolor)
         print(kloc)
         print(kdestinations)
-        kmoves = [Move(kloc[0],kloc[1],kdest[0],kdest[1]) for kdest in kdestinations]
+        kmoves = [Move(kloc[0], kloc[1], kdest[0], kdest[1]) for kdest in kdestinations]
         for km in kmoves:
             print(f"Trying {km}")
-            if(self.try_escape(km,kcolor)):
+            if(self.try_escape(km, kcolor)):
                 print("escape found")
                 return False
         return True
-            
+
     def get_path(self, move):
         x_curr = move.x
         y_curr = move.y
@@ -112,7 +112,7 @@ class Board:
         if (not active_piece.isValidMove(move)): 
             print("140")
             return False
-        y_move_distance = abs(move.y-move.y1) # implicitly know xmd == 0, ymd == 0 or 1
+        y_move_distance = abs(move.y-move.y1)   # implicitly know xmd == 0, ymd == 0 or 1
         if (y_move_distance == 0):
             if(not self.board_state[move.x1][move.y1]):
                 return True
@@ -130,13 +130,12 @@ class Board:
 
     def validate_castling(self,move):
         active_piece = self.board_state[move.x][move.y]
-        dest_piece = self.board_state[move.x1][move.y1]
         castle_y = 7 if move.y1 == 6 else 0
         castle_piece = self.board_state[move.x1][castle_y]
         
         if(not castle_piece):
             return False
-        if(not isinstance(castle_piece,Rook)):
+        if(not isinstance(castle_piece, Rook)):
             return False
         if (active_piece.has_moved or castle_piece.has_moved):
             return False
@@ -152,10 +151,8 @@ class Board:
     def validate_move(self,move):
         active_piece = self.board_state[move.x][move.y]
         dest_piece = self.board_state[move.x1][move.y1]
-
-
         x_move_distance, y_move_distance = abs(move.x-move.x1), abs(move.y-move.y1)
-        total_move_distance = x_move_distance + y_move_distance
+        #total_move_distance = x_move_distance + y_move_distance
         if (isinstance(active_piece,Pawn)):
             if(self.validate_pawn(move)):
                 return True
@@ -172,13 +169,16 @@ class Board:
 
         if(not active_piece.isValidMove(move)): 
             raise InvalidMoveError 
-
-        #if(dest_piece):
+        '''
+        if(dest_piece):
             #if(dest_piece.color == self.turn):
                 #raise InvalidMoveError 
 
-        # if (check path btw active and dest (call piece method)
-
+        if (check path btw active and dest (call piece method)   
+        '''
+        for sq in self.get_path(move):
+            if(sq):
+                raise InvalidMoveError 
         return True
 
     def perform_move(self,move):
@@ -216,7 +216,6 @@ class Move:
     def __str__(self):
         return f'({self.x},{self.y}) -> ({self.x1},{self.y1})'
 
-
 class Error(Exception):
     """Base class for other exceptions"""
     pass
@@ -248,7 +247,7 @@ class Game:
     def game_loop(self):
         while(True):
             try:
-                g.board.print_board()
+                self.board.print_board()
                 c = self.take_input()
                 m = Move(c[0],c[1],c[2],c[3])
                 self.move(m)
