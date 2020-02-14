@@ -1,4 +1,4 @@
-from piece import Move, Game
+from chess import Move, Game
 from pgn_parser import parse
 
 games = parse()
