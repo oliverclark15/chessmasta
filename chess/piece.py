@@ -1,4 +1,4 @@
-
+import itertools
 class Rook:
 	def __init__(self,color):
 		self.color = color
@@ -156,6 +156,24 @@ class Board:
 		self.board_state = [[pf.new_piece(x,y) for y in range(8)] for x in range(8)]
 		self.turn_number = 1
 
+	def get_king_moves(self,kcolor):
+		kloc = self.find_king(kcolor)
+		kx = kloc[0]
+		ky = kloc[1]
+		xl = []
+		yl = []
+		xl.append(kx)
+		yl.append(ky)
+		if (kx < 7):
+			xl.append(kx+1)
+		if (kx > 0):
+			xl.append(kx-1)
+		if (ky < 7):
+			yl.append(ky+1)
+		if (ky > 0):
+			yl.append(ky-1)
+		return list(itertools.product(xl,yl)).remove((kx,ky))
+
 	def find_king(self,kcolor):
 		for x in range(8):
 			for y in range(8):
@@ -181,6 +199,15 @@ class Board:
 							continue
 					return True
 		return False
+
+	def is_in_checkmate(self,kcolor):
+		kloc = self.find_king(kcolor)
+		kdestinations = self.get_king_moves(kcolor)
+		kmoves = [Move(kloc[0],kloc[1],kdest[0],kdest[1]) for kdest in kdestinations]
+		for km in kmoves:
+			
+
+
 
 	def get_path(self, move):
 		x_curr = move.x
@@ -396,11 +423,29 @@ class Game:
 
 
 if (__name__ == "__main__"):
+	'''
 	mm = Move(0,0,7,0)
 	mm1 = Move(0,0,0,7)
 	mm2 = Move(0,0,7,7)
 	mm3 = Move(5,5,0,0)
 	mm4 = Move(2,3,4,5)
+	print("0,0")
+	print(list(get_king_moves(0,0)))
+	print("7,7")
+	print(list(get_king_moves(7,7)))
+	print("0,7")
+	print(list(get_king_moves(0,7)))
+	print("7,0")
+	print(list(get_king_moves(7,0)))
+	print("0,1")
+	print(list(get_king_moves(0,1)))
+	print("1,0")
+	print(list(get_king_moves(1,0)))
+	print("3,3")
+	print(list(get_king_moves(3,3)))
+	print("7,2")
+	print(list(get_king_moves(7,2)))
+		'''
 
 	g = Game()
 	g.game_loop()
