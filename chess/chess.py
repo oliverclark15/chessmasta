@@ -15,20 +15,15 @@ class Board:
         kloc = self.find_king(kcolor)
         kx = kloc[0]
         ky = kloc[1]
-        xl = []
-        yl = []
-        xl.append(kx)
-        yl.append(ky)
-        print(kloc)
-        if (kx < 7):
-            xl.append(kx+1)
-        if (kx > 0):
-            xl.append(kx-1)
-        if (ky < 7):
-            yl.append(ky+1)
-        if (ky > 0):
-            yl.append(ky-1)
-        print(list(itertools.product(xl, yl)))
+        xl,yl = [kx],[ky]
+        #xl.append(kx)
+        #yl.append(ky)
+        #print(kloc)
+        if (kx < 7): xl.append(kx+1)
+        if (kx > 0): xl.append(kx-1)
+        if (ky < 7): yl.append(ky+1)
+        if (ky > 0): yl.append(ky-1)
+        #print(list(itertools.product(xl, yl)))
         return list(itertools.product(xl, yl))
 
     def find_king(self,kcolor):
@@ -58,11 +53,11 @@ class Board:
         return False
 
     def try_escape(self,move,kcolor):
-        tmp = self.board_state[move.x1][move.y1]
-        if(not tmp or tmp.color != kcolor):
+        dest = self.board_state[move.x1][move.y1]
+        if(not dest or dest.color != kcolor):
             self.board_state[move.x][move.y], self.board_state[move.x1][move.y1] = None, self.board_state[move.x][move.y]
             in_check = self.is_in_check(kcolor)
-            self.board_state[move.x][move.y], self.board_state[move.x1][move.y1] = self.board_state[move.x1][move.y1], tmp
+            self.board_state[move.x][move.y], self.board_state[move.x1][move.y1] = self.board_state[move.x1][move.y1], dest
             return (not in_check)
         else:
             return False
@@ -153,6 +148,7 @@ class Board:
         dest_piece = self.board_state[move.x1][move.y1]
         x_move_distance, y_move_distance = abs(move.x-move.x1), abs(move.y-move.y1)
         #total_move_distance = x_move_distance + y_move_distance
+
         if (isinstance(active_piece,Pawn)):
             if(self.validate_pawn(move)):
                 return True
@@ -168,6 +164,7 @@ class Board:
             raise NoPieceHereError
 
         if(not active_piece.isValidMove(move)): 
+
             raise InvalidMoveError 
         '''
         if(dest_piece):
@@ -177,8 +174,9 @@ class Board:
         if (check path btw active and dest (call piece method)   
         '''
         for sq in self.get_path(move):
-            if(sq):
+            if(self.board_state[sq[0]][sq[1]]):
                 raise InvalidMoveError 
+        
         return True
 
     def perform_move(self,move):

@@ -86,7 +86,7 @@ class Pawn:
 	def get_inbetween(self,move):
 		return []
 	def isValidMove(self,move):
-
+		#print("hi")
 		x_move_distance = abs(move.x-move.x1)
 		y_move_distance = abs(move.y-move.y1)
 		total_move_distance = x_move_distance + y_move_distance
