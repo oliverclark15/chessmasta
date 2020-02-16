@@ -2,7 +2,7 @@ import itertools
 if (__name__ == "__main__"):
     from piece import Rook, Knight, Bishop, King, Queen, Pawn, PieceFactory
 else:
-    from .piece import Rook, Knight, Bishop, King, Queen, Pawn, PieceFactory
+    from piece import Rook, Knight, Bishop, King, Queen, Pawn, PieceFactory
 
 class Board:
     def __init__(self):
@@ -115,7 +115,7 @@ class Board:
                 print("146")
                 return False
         elif (y_move_distance == 1):
-            if(self.board_state[move.x1][move.y1].color == self.turn):
+            if(self.board_state[move.x1][move.y1] and (self.board_state[move.x1][move.y1].color == self.turn)):
                 return True
             else:
                 print("150")
@@ -164,7 +164,6 @@ class Board:
             raise NoPieceHereError
 
         if(not active_piece.isValidMove(move)): 
-
             raise InvalidMoveError 
         '''
         if(dest_piece):
@@ -173,9 +172,11 @@ class Board:
 
         if (check path btw active and dest (call piece method)   
         '''
-        for sq in self.get_path(move):
-            if(self.board_state[sq[0]][sq[1]]):
-                raise InvalidMoveError 
+
+        if(not isinstance(active_piece, Knight)):
+            for sq in self.get_path(move):
+                if(self.board_state[sq[0]][sq[1]]):
+                    raise InvalidMoveError 
         
         return True
 
@@ -235,6 +236,8 @@ class Game:
         self.board = Board()
         self.move_history = []
 
+
+
     def take_input(self):
         cmd = input("Enter move: x,y,x1,y1:")
         c = cmd.split(",")
@@ -243,6 +246,7 @@ class Game:
         return [int(x) for x in c]
 
     def game_loop(self):
+        print("----------------------START-----------------------")
         while(True):
             try:
                 self.board.print_board()
@@ -261,6 +265,7 @@ class Game:
                         break
                     else:
                         print("Black is in check")
+
                 #print(f"White: {self.board.board_state.is_in_check("White")}   Black: {self.board.board_state.is_in_check("Black")}")
                 #self.move(c[0],c[1],c[2],c[3])
             except InvalidInputError:
@@ -287,6 +292,7 @@ class Game:
         except InvalidMoveError:
             print(move)
             print("Move is invalid. Learn how to play chess.")
+            print("\n\n\n\n\n\n\n")
         except NoPieceHereError:
             print(move)
             print(f"No piece located at {move.x},{move.y}")

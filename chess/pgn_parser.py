@@ -1,5 +1,5 @@
 import re
-from piece import Move
+from chess import Move
 
 def parse():
 	char_dict = {
@@ -22,7 +22,7 @@ def parse():
 		'2':6,
 		'1':7
 	}
-	with open("berliner.txt") as f:
+	with open("carlsen_games.txt") as f:
 	    content = f.readlines()
 
 	long_string = "".join(content).replace("\n"," ")
