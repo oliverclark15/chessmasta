@@ -16,14 +16,10 @@ class Board:
         kx = kloc[0]
         ky = kloc[1]
         xl,yl = [kx],[ky]
-        #xl.append(kx)
-        #yl.append(ky)
-        #print(kloc)
         if (kx < 7): xl.append(kx+1)
         if (kx > 0): xl.append(kx-1)
         if (ky < 7): yl.append(ky+1)
         if (ky > 0): yl.append(ky-1)
-        #print(list(itertools.product(xl, yl)))
         return list(itertools.product(xl, yl))
 
     def find_king(self,kcolor):
@@ -37,19 +33,28 @@ class Board:
 
     def is_in_check(self,kcolor):
         kloc = self.find_king(kcolor)
+        flag = True
         for x in range(8):
             for y in range(8):
+                flag = True
                 bs = self.board_state[x][y]
                 if(not bs):
                     continue
                 if(bs.color == kcolor):
                     continue
                 attack_move = Move(x, y, kloc[0], kloc[1])
+                #print(attack_move)
                 if(bs.isValidMove(attack_move)):
+                    #print(self.get_path(attack_move))
                     for p in self.get_path(attack_move):
-                        if (p):
-                            continue
-                    return True
+                        #print(p)
+                        if (self.board_state[p[0]][p[1]]):
+                            flag = False
+                            break
+                    #print(flag)
+                    if (flag):
+                        #print(f"Attack move {attack_move}")
+                        return True
         return False
 
     def try_escape(self,move,kcolor):
@@ -229,7 +234,11 @@ class InvalidMoveError(Error):
 
 class NoPieceHereError(Error):
     """Raised when no piece exists at initial coord"""
-    pass    
+    pass 
+
+class GameOver(Error):
+    """Raised when game over (checkmate)"""
+    pass   
 
 class Game:
     def __init__(self):
@@ -253,25 +262,16 @@ class Game:
                 c = self.take_input()
                 m = Move(c[0],c[1],c[2],c[3])
                 self.move(m)
-                if (self.board.is_in_check("White")):
-                    if (self.board.is_in_checkmate("White")):
-                        print("White is in checkmate, Black wins!")
-                        break
-                    else:
-                        print("White is in check")
-                if (self.board.is_in_check("Black")):
-                    if (self.board.is_in_checkmate("Black")):
-                        print("Black is in checkmate, white wins!")
-                        break
-                    else:
-                        print("Black is in check")
-
+                print("======================================")
                 #print(f"White: {self.board.board_state.is_in_check("White")}   Black: {self.board.board_state.is_in_check("Black")}")
                 #self.move(c[0],c[1],c[2],c[3])
             except InvalidInputError:
                 print("Invalid input! Move must be inputted in correct format")
             except InvalidMoveError:
                 print("Move is invalid. Learn how to play chess.")
+            except GameOver:
+                print("gameover")
+                break
         return
 
     def move(self,move):
@@ -289,6 +289,16 @@ class Game:
                 else:
                     self.board.perform_move(move)
                 self.move_history.append(move)
+                if (self.board.is_in_check("White")):
+                    print("White is in check")
+                    if (self.board.is_in_checkmate("White")):
+                        print("White is in checkmate, Black wins!")
+                        raise GameOver
+                if (self.board.is_in_check("Black")):
+                    print("Black is in check")
+                    if (self.board.is_in_checkmate("Black")):
+                        print("Black is in checkmate, white wins!")
+                        raise GameOver
         except InvalidMoveError:
             print(move)
             print("Move is invalid. Learn how to play chess.")

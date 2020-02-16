@@ -22,7 +22,7 @@ def parse():
 		'2':6,
 		'1':7
 	}
-	with open("carlsen_games.txt") as f:
+	with open("Adams.txt") as f:
 	    content = f.readlines()
 
 	long_string = "".join(content).replace("\n"," ")
@@ -32,6 +32,7 @@ def parse():
 	for ls in long_string:
 	    z = re_prog.findall(ls)
 	    output.append(z)
+	print(len(output))
 	new_games = [[Move(int_dict[move[1]],char_dict[move[0]],int_dict[move[4]],char_dict[move[3]]) for move in game] for game in output]
 	return new_games
 
