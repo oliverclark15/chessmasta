@@ -11,6 +11,31 @@ class Board:
         self.board_state = [[pf.new_piece(x, y) for y in range(8)] for x in range(8)]
         self.turn_number = 1
 
+    def find_pieces(self,color):
+        piece_locations = []
+        for x in range(8):
+            for y in range(8):
+                p = self.board_state[x][y]
+                if(not p):
+                    continue
+                if(p.color == color):
+                    piece_locations.append((x,y))
+        return piece_locations
+
+    
+    def get_all_moves(self,color):
+        piece_locations = self.find_pieces(color)
+        moves = []
+        for piece_location in piece_locations:
+            px,py = piece_location[0], piece_location[1]
+            for x in range(8):
+                for y in range(8):
+                    candidate_move = Move(px,py,x,y)
+                    candidate_move.type = self.get_move_type(candidate_move)
+                    if(self.validate_move(candidate_move)):
+                        moves.append(candidate_move)
+        return moves
+
     def get_king_moves(self,kcolor):
         kloc = self.find_king(kcolor)
         kx = kloc[0]
@@ -242,7 +267,7 @@ class GameOver(Error):
 
 class Game:
     def __init__(self):
-        self.board = Board()
+        self.board = Board()           
         self.move_history = []
 
 
@@ -310,30 +335,6 @@ class Game:
 
 
 if (__name__ == "__main__"):
-    '''
-    mm = Move(0,0,7,0)
-    mm1 = Move(0,0,0,7)
-    mm2 = Move(0,0,7,7)
-    mm3 = Move(5,5,0,0)
-    mm4 = Move(2,3,4,5)
-    print("0,0")
-    print(list(get_king_moves(0,0)))
-    print("7,7")
-    print(list(get_king_moves(7,7)))
-    print("0,7")
-    print(list(get_king_moves(0,7)))
-    print("7,0")
-    print(list(get_king_moves(7,0)))
-    print("0,1")
-    print(list(get_king_moves(0,1)))
-    print("1,0")
-    print(list(get_king_moves(1,0)))
-    print("3,3")
-    print(list(get_king_moves(3,3)))
-    print("7,2")
-    print(list(get_king_moves(7,2)))
-        '''
-
     g = Game()
     g.game_loop()
 
