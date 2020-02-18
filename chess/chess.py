@@ -1,16 +1,20 @@
 import itertools
+import copy 
 if (__name__ == "__main__"):
     from piece import Rook, Knight, Bishop, King, Queen, Pawn, PieceFactory
 else:
     from piece import Rook, Knight, Bishop, King, Queen, Pawn, PieceFactory
 
 class Board:
-    def __init__(self):
-        pf = PieceFactory()
-        self.turn = "White"
-        self.board_state = [[pf.new_piece(x, y) for y in range(8)] for x in range(8)]
-        self.turn_number = 1
-
+    def __init__(self, turn_number=1, turn="White", board_state=None):
+        self.turn = turn
+        self.turn_number = turn_number
+        if (board_state):
+            self.board_state = board_state
+        else:
+            pf = PieceFactory()
+            self.board_state = [[pf.new_piece(x, y) for y in range(8)] for x in range(8)]
+    
     def find_pieces(self,color):
         piece_locations = []
         for x in range(8):
@@ -32,8 +36,14 @@ class Board:
                 for y in range(8):
                     candidate_move = Move(px,py,x,y)
                     candidate_move.type = self.get_move_type(candidate_move)
-                    if(self.validate_move(candidate_move)):
-                        moves.append(candidate_move)
+                    try:
+                        if(self.validate_move(candidate_move)):
+                            #print(candidate_move)
+                            moves.append(candidate_move)
+                    except InvalidMoveError:
+                        pass
+                    except NoPieceHereError:
+                        pass
         return moves
 
     def get_king_moves(self,kcolor):
@@ -67,6 +77,8 @@ class Board:
                     continue
                 if(bs.color == kcolor):
                     continue
+                if(not kloc):
+                    return False
                 attack_move = Move(x, y, kloc[0], kloc[1])
                 #print(attack_move)
                 if(bs.isValidMove(attack_move)):
@@ -92,7 +104,12 @@ class Board:
         else:
             return False
 
+    def gameover(self):
+        return self.is_in_checkmate("Black") or self.is_in_checkmate("White")
+
     def is_in_checkmate(self, kcolor):
+        if (not self.is_in_check(kcolor)):
+            return False
         kloc = self.find_king(kcolor)
         kdestinations = self.get_king_moves(kcolor)
         print(kloc)
@@ -105,6 +122,7 @@ class Board:
                 return False
         return True
 
+    
     def get_path(self, move):
         x_curr = move.x
         y_curr = move.y
@@ -134,22 +152,23 @@ class Board:
 
     def validate_pawn(self,move):
         active_piece = self.board_state[move.x][move.y]
+        dest_piece = self.board_state[move.x1][move.y1]
         if (not active_piece.isValidMove(move)): 
-            print("140")
+            #print("140")
             return False
         y_move_distance = abs(move.y-move.y1)   # implicitly know xmd == 0, ymd == 0 or 1
         if (y_move_distance == 0):
             if(not self.board_state[move.x1][move.y1]):
                 return True
             else:
-                print("146")
+                #print("146")
                 return False
         elif (y_move_distance == 1):
-            if(self.board_state[move.x1][move.y1] and (self.board_state[move.x1][move.y1].color == self.turn)):
+            if(dest_piece and (dest_piece.color == self.turn)):
                 return True
             else:
-                print("150")
-                return True
+                #print("150")
+                return False
         else:
             print("shouldnt happen")
 
@@ -164,6 +183,13 @@ class Board:
             return False
         if (active_piece.has_moved or castle_piece.has_moved):
             return False
+
+        between = self.get_path(move)
+        for btw in between:
+            piece = self.board_state[btw[0]][btw[1]]
+            if(piece):
+                return False
+
 
         return True
         # check if pieces between
@@ -183,23 +209,28 @@ class Board:
             if(self.validate_pawn(move)):
                 return True
             else:
-                raise InvalidMoveError 
+               return False
+               #raise InvalidMoveError 
         if (isinstance(active_piece, King) and y_move_distance == 2):
             if(self.validate_castling(move)):
                 return True
             else:
-                raise InvalidMoveError 
-
-        if(not active_piece):
-            raise NoPieceHereError
-
-        if(not active_piece.isValidMove(move)): 
-            raise InvalidMoveError 
-        '''
-        if(dest_piece):
-            #if(dest_piece.color == self.turn):
+                return False
                 #raise InvalidMoveError 
 
+        if(not active_piece):
+            return False
+            #raise NoPieceHereError
+
+        if(not active_piece.isValidMove(move)): 
+            return False
+            #raise InvalidMoveError 
+        
+        if(dest_piece):
+            if(dest_piece.color == self.turn):
+                return False
+                #raise InvalidMoveError 
+        '''
         if (check path btw active and dest (call piece method)   
         '''
 
@@ -216,6 +247,17 @@ class Board:
         self.turn_number += 1
         print(f"turn number:{self.turn_number}")
         return
+
+
+    def get_next_board(self,move):
+        next_bs = copy.deepcopy(self.board_state)
+        next_bs[move.x][move.y], next_bs[move.x1][move.y1] = None, next_bs[move.x][move.y]
+        turn = "White" if self.turn == "Black" else "Black"
+        return Board(self.turn_number + 1, turn, next_bs)
+
+    def evaluate(self):
+        return 10
+
 
 
     def perform_castling(self,move):
