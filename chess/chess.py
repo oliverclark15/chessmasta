@@ -110,15 +110,23 @@ class Board:
     def is_in_checkmate(self, kcolor):
         if (not self.is_in_check(kcolor)):
             return False
+        '''
         kloc = self.find_king(kcolor)
         kdestinations = self.get_king_moves(kcolor)
         print(kloc)
         print(kdestinations)
         kmoves = [Move(kloc[0], kloc[1], kdest[0], kdest[1]) for kdest in kdestinations]
         for km in kmoves:
-            print(f"Trying {km}")
+            #print(f"Trying {km}")
             if(self.try_escape(km, kcolor)):
-                print("escape found")
+                #print("escape found")
+                return False
+        '''
+        omoves = self.get_all_moves(kcolor)
+        for om in omoves:
+            #print(f"Trying {km}")
+            if(self.try_escape(om, kcolor)):
+                #print("escape found")
                 return False
         return True
 
@@ -337,6 +345,7 @@ class Game:
             except InvalidMoveError:
                 print("Move is invalid. Learn how to play chess.")
             except GameOver:
+                self.board.print_board()
                 print("gameover")
                 break
         return
